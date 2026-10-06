@@ -7,7 +7,7 @@ export default function HomePage() {
         <div className="hero main">
           <div className="heroCopy">
             <div className="eyebrow">REGIONAL · FAIR · PERSÖNLICH</div>
-            <h1>Dein Patenhuhn.<br/><em>Deine Eier.</em></h1>
+            <h1>Deine Patenschaft.<br/><em>Patenhuhn.de.</em></h1>
             <p className="lead">Übernimm eine Patenschaft für eine Henne aus Freilandhaltung. Dein Patenhuhn <strong>legt 6 Eier pro Woche</strong> – dein Anspruch landet übersichtlich in deinem digitalen Nest.</p>
             <div className="actions">
               <Link className="btn" href="/bestellen">Patenhuhn anfragen</Link>
@@ -36,6 +36,12 @@ export default function HomePage() {
           <article><b>02</b><h3>Digitales Nest füllen</h3><p>Jedes aktive Patenhuhn legt im Patenschaftsmodell 6 Eier pro Woche für dein digitales Nest.</p></article>
           <article><b>03</b><h3>Code einlösen</h3><p>Du erzeugst einen Abholcode und erhältst damit die reservierten Eier.</p></article>
         </div>
+      </section>
+
+
+      <section className="main section legacySection">
+        <div className="legacyCopy"><div className="eyebrow">PATENHUHN.DE</div><h2>Die Idee wächst weiter.</h2><p>Das ursprüngliche Patenhuhn-Konzept gehört zu unserer Geschichte. Heute verbinden wir die persönliche Hühnerpatenschaft mit digitalem Nest, Urkunden und einem eigenen Patenprofil.</p><Link className="btn ghost" href="/bestellen">Patenschaft anfragen</Link></div>
+        <div className="legacyPoster"><img src="/patenhuhn-alt.png" alt="Patenhuhn – ursprüngliches Plakat"/></div>
       </section>
 
       <section className="warmSection">

@@ -1,44 +1,50 @@
-# Patenhuhn V0.6
+# Patenhuhn.de V0.7
 
-Komplette GitHub-Version der Patenhuhn-Webanwendung.
+V0.7 erweitert die bestehende V0.6 um die vollständige Urkundenfunktion und das Patenhuhn.de-Branding.
 
-## Neu in V0.6
-- ruhiger Freiland-/Mobilstall-Look mit Hof-Hintergrund
-- Login robuster gegen falsch eingetragene Supabase-URL mit `/auth/v1` oder anderem Pfad
-- „Name auf der Urkunde“ → „Urkunde ausgestellt für“
-- abweichende E-Mail für Eierempfang entfernt
-- Urkundenstile: Klassisch, Natur, Mittelalter, Comic
-- „Eierguthaben“ in der Kundensprache weitgehend durch „digitales Nest“ ersetzt
-- „Welsumer“ aus Demo-/Stallanzeige entfernt
-- Text bei Code-Einlösung ohne „echten“
-- ausführlichere Leistungen der Patenschaft
-- Premium bleibt für alle Hennen einer Patenschaft
-- automatische Bestell-/Kontaktmail über Resend vorbereitet
+## Neu
+- Patenhuhn.de als Markenname in Header/Footer
+- originales BoBs-Eier-Logo lokal eingebunden und verlinkt
+- altes Patenhuhn-Plakat als Wiedererkennungselement auf der Startseite (ohne „Bekannt von früher“)
+- vier echte Urkundenlayouts: Klassisch, Natur, Mittelalter, Comic
+- Klassisch bewusst schlichter gestaltet
+- Wunschname(n) und Urkundenstil werden beim Anlegen der Patenschaft übernommen
+- Admin kann pro Huhn ein Foto hochladen
+- Admin kann mit Maus/Finger/Stift digital unterschreiben
+- ohne digitale Signatur bleibt eine Linie für die handschriftliche Unterschrift
+- Urkunde erscheint im persönlichen Patenprofil
+- PDF-Download direkt aus dem Patenprofil
+- Bestellung/Kontakt: Supabase speichert zuerst; danach öffnet sich `mailto:bobs@posteo.de`
+- Resend ist nicht mehr erforderlich
+
+## GitHub
+Den Inhalt dieses Ordners direkt in das bestehende Repository hochladen. `app/`, `public/`, `package.json` usw. müssen im Repository-Hauptverzeichnis liegen.
 
 ## Supabase
-Für V0.6 ist **keine neue SQL-Migration nötig**, wenn `003_full_cycle.sql` und `004_branding_contact_cleanup.sql` bereits gelaufen sind.
+Nur die neue Migration einmal ausführen:
 
-Alte Migrationen niemals erneut ausführen.
+`supabase/migrations/005_certificates_branding.sql`
 
-## Vercel Environment Variables
+001, 002, 003 und 004 **nicht erneut ausführen**.
 
-### Supabase
-```text
-NEXT_PUBLIC_SUPABASE_URL=https://DEIN-PROJEKT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-```
+Die Migration ergänzt:
+- Urkundendaten an `sponsorships`
+- globale digitale Urkunden-Unterschrift
+- Storage-Bucket `chicken-photos`
+- Admin-Policies für Hühnerfotos
+- Übernahme von Wunschname und Urkundenstil aus einer Bestellung bei `fulfill_order`
 
-Bei `NEXT_PUBLIC_SUPABASE_URL` am besten wirklich nur die Basis-URL verwenden, also **ohne** `/auth/v1`, `/rest/v1` oder weitere Pfade. V0.6 normalisiert die URL zusätzlich automatisch.
+## Ablauf
+1. Kunde bestellt und wählt Wunschname, Urkundenempfänger und Stil.
+2. Anfrage wird in Supabase gespeichert und das Mailprogramm öffnet sich.
+3. Admin lädt unter `/admin` das Hühnerfoto hoch und ordnet freie Henne(n) zu.
+4. Beim Anlegen der Patenschaft werden Namen und Urkundendaten übernommen.
+5. Eine im Admin hinterlegte digitale Signatur erscheint automatisch; ansonsten bleibt die Unterschriftslinie frei.
+6. Kunde sieht seine Urkunde unter `/stall` und kann sie als PDF herunterladen.
 
-### Resend / automatische E-Mails
-```text
-RESEND_API_KEY=re_...
-MAIL_FROM=Patenhuhn <anfragen@deine-verifizierte-domain.de>
-```
+## Vercel
+Benötigt weiterhin nur:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-Bestell- und Kontaktmails werden an `bobs@posteo.de` geschickt. Die im Formular eingegebene Kundenmail wird als Reply-To gesetzt.
-
-Für Resend muss der Absender bzw. die Domain im Resend-Konto verifiziert werden. Ohne Resend-Konfiguration werden Bestellungen/Kontaktanfragen weiterhin in Supabase gespeichert; nur der zusätzliche Mailversand bleibt aus.
-
-## GitHub / Vercel
-Den **Inhalt** dieses Ordners in das bestehende Repository hochladen, sodass `app/`, `public/`, `package.json` usw. direkt im Repository-Root liegen. Vercel sollte danach automatisch neu deployen.
+`RESEND_API_KEY` und `MAIL_FROM` sind nicht mehr nötig.
