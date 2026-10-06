@@ -2,132 +2,97 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { QRCodeSVG } from 'qrcode.react'
 import { createClient } from '@/lib/supabase/client'
 
-type StallData = {
-  chickenName: string
-  breed: string
-  availableEggs: number
+type Sponsorship = {
+  id: string
+  eggs_per_week: number
+  start_date: string
+  chicken_id: string
+  chickens: { id:string; name:string; breed:string|null; photo_url:string|null; farms:{id:string;name:string;city:string|null}|null } | null
+  balance: number
   weekEggs: number
-  isDemo: boolean
 }
 
-export default function StallPage() {
-  const router = useRouter()
-  const [data, setData] = useState<StallData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [info, setInfo] = useState('')
+type Redemption = { id:string; sponsorship_id:string; egg_count:number; code:string; status:string; expires_at:string; created_at:string }
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const supabase = createClient()
-        const { data: authData } = await supabase.auth.getUser()
+export default function StallPage(){
+  const router=useRouter()
+  const [items,setItems]=useState<Sponsorship[]>([])
+  const [codes,setCodes]=useState<Redemption[]>([])
+  const [loading,setLoading]=useState(true)
+  const [msg,setMsg]=useState('')
+  const [amounts,setAmounts]=useState<Record<string,number>>({})
 
-        if (!authData.user) {
-          setData({ chickenName: 'Lotta', breed: 'Welsumer', availableEggs: 24, weekEggs: 4, isDemo: true })
-          return
-        }
+  useEffect(()=>{load()},[])
 
-        const { data: sponsorship, error } = await supabase
-          .from('sponsorships')
-          .select('id, chicken_id, chickens(name, breed)')
-          .eq('user_id', authData.user.id)
-          .eq('status', 'active')
-          .limit(1)
-          .maybeSingle()
+  async function load(){
+    setLoading(true); setMsg('')
+    const supabase=createClient()
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user){router.push('/login');return}
 
-        if (error || !sponsorship) {
-          setData({ chickenName: 'Noch kein Huhn', breed: 'Keine aktive Patenschaft', availableEggs: 0, weekEggs: 0, isDemo: false })
-          return
-        }
+    const {data:sponsorships,error}=await supabase
+      .from('sponsorships')
+      .select('id,eggs_per_week,start_date,chicken_id,chickens(id,name,breed,photo_url,farms(id,name,city))')
+      .eq('user_id',user.id).eq('status','active').order('created_at',{ascending:true})
+    if(error){setMsg(error.message);setLoading(false);return}
 
-        const { data: tx } = await supabase
-          .from('egg_transactions')
-          .select('amount, type, week_start')
-          .eq('sponsorship_id', sponsorship.id)
-
-        const balance = (tx ?? []).reduce((sum: number, row: { amount: number }) => sum + Number(row.amount || 0), 0)
-
-        const monday = new Date()
-        const day = monday.getDay()
-        const diff = monday.getDate() - day + (day === 0 ? -6 : 1)
-        monday.setDate(diff)
-        const currentWeek = monday.toISOString().slice(0, 10)
-        const weeklyCredit = (tx ?? []).find((row: { type: string; week_start: string | null }) =>
-          row.type === 'weekly_credit' && row.week_start === currentWeek
-        )
-        const chicken = Array.isArray(sponsorship.chickens) ? sponsorship.chickens[0] : sponsorship.chickens
-
-        setData({
-          chickenName: chicken?.name ?? 'Patenhuhn',
-          breed: chicken?.breed ?? 'Unbekannte Rasse',
-          availableEggs: balance,
-          weekEggs: Math.min(6, Math.max(0, Number(weeklyCredit?.amount ?? 0))),
-          isDemo: false
-        })
-      } catch (error) {
-        setInfo(error instanceof Error ? error.message : 'Daten konnten nicht geladen werden.')
-      } finally {
-        setLoading(false)
-      }
+    const enriched:Sponsorship[]=[]
+    for(const raw of (sponsorships||[]) as any[]){
+      await supabase.rpc('credit_weekly_eggs',{p_sponsorship_id:raw.id})
+      const {data:tx}=await supabase.from('egg_transactions').select('amount,type,week_start').eq('sponsorship_id',raw.id)
+      const balance=(tx||[]).reduce((n:number,r:any)=>n+Number(r.amount||0),0)
+      const monday=new Date(); const day=monday.getDay(); monday.setDate(monday.getDate()-day+(day===0?-6:1)); const week=monday.toISOString().slice(0,10)
+      const weekly=(tx||[]).find((r:any)=>r.type==='weekly_credit'&&r.week_start===week)
+      enriched.push({...raw,balance,weekEggs:Math.min(Number(raw.eggs_per_week||6),Math.max(0,Number(weekly?.amount||0)))})
     }
-
-    load()
-  }, [])
-
-  const eggs = useMemo(() => Array.from({ length: 6 }, (_, i) => i < (data?.weekEggs ?? 0)), [data])
-
-  async function logout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
+    setItems(enriched)
+    const ids=enriched.map(x=>x.id)
+    if(ids.length){
+      const {data:r}=await supabase.from('redemptions').select('id,sponsorship_id,egg_count,code,status,expires_at,created_at').in('sponsorship_id',ids).order('created_at',{ascending:false})
+      setCodes((r||[]) as Redemption[])
+    }else setCodes([])
+    setLoading(false)
   }
 
-  if (loading) return <main className="main"><div className="card">Hühnerstall wird geöffnet…</div></main>
+  async function createCode(s:Sponsorship){
+    const amount=amounts[s.id]||6
+    if(amount<1||amount>s.balance){setMsg('Bitte eine gültige Eiermenge wählen.');return}
+    const supabase=createClient()
+    const {data:settings}=await supabase.from('site_settings').select('value').eq('key','redemption_valid_days').maybeSingle()
+    const days=Number(settings?.value||7)
+    const {error}=await supabase.rpc('create_redemption',{p_sponsorship_id:s.id,p_egg_count:amount,p_valid_days:days})
+    if(error){setMsg(error.message);return}
+    setMsg(`Abholcode für ${amount} Eier erstellt.`); await load()
+  }
 
-  return (
-    <main className="main">
-      <div className="stallTop">
-        <div>
-          <div className="muted">Mein Hühnerstall</div>
-          <h1 style={{marginTop:6}}>Willkommen im Stall 🐔</h1>
-        </div>
-        <button className="btn secondary" onClick={logout}>Abmelden</button>
-      </div>
+  async function cancelCode(id:string){
+    const supabase=createClient(); const {error}=await supabase.rpc('cancel_redemption',{p_redemption_id:id})
+    if(error){setMsg(error.message);return} setMsg('Code storniert, Eier wurden zurückgebucht.'); await load()
+  }
 
-      {data?.isDemo && <div className="notice">Demo-Modus: Noch kein Login erkannt. So wird der Stall später aussehen.</div>}
-      {info && <div className="notice error">{info}</div>}
+  async function logout(){const supabase=createClient();await supabase.auth.signOut();router.push('/');router.refresh()}
 
-      <section className="card chickenCard">
+  if(loading)return <main className="main page"><div className="card">Hühnerstall wird geöffnet…</div></main>
+
+  return <main className="main page">
+    <div className="stallTop"><div><div className="eyebrow">MEIN DIGITALER HÜHNERSTALL</div><h1 className="pageTitle">Deine Hühner & Eier</h1><p className="muted">Jede aktive Patenschaft erhält ihr vereinbartes Wochenkontingent. Nicht abgeholte Eier bleiben als Guthaben erhalten.</p></div><button className="btn secondary" onClick={logout}>Abmelden</button></div>
+    {msg&&<div className="notice">{msg}</div>}
+    {!items.length&&<div className="card"><h2>Noch keine aktive Patenschaft</h2><p className="muted">Sobald deine Bestellung einem Huhn zugeordnet wurde, erscheint es hier.</p><Link className="btn" href="/bestellen">Patenhuhn bestellen</Link></div>}
+    <div className="stallList">
+      {items.map(s=><section className="card chickenCardV2" key={s.id}>
         <div className="chickenAvatar">🐔</div>
-        <div>
-          <div className="muted">Dein Patenhuhn</div>
-          <h2 style={{fontSize:'2rem', margin:'4px 0'}}>{data?.chickenName}</h2>
-          <div className="muted">{data?.breed}</div>
+        <div className="chickenMain"><div className="muted">{s.chickens?.farms?.name||'Patenhuhn-Hof'}{s.chickens?.farms?.city?` · ${s.chickens.farms.city}`:''}</div><h2>{s.chickens?.name||'Patenhuhn'}</h2><div className="muted">{s.chickens?.breed||'Rasse nicht hinterlegt'}</div>
+          <div className="eggRow">{Array.from({length:s.eggs_per_week},(_,i)=><span key={i} className={'egg '+(i<s.weekEggs?'':'empty')}/>)}</div>
+          <strong>{s.weekEggs} von {s.eggs_per_week} Eiern diese Woche</strong>
+        </div>
+        <div className="balanceBox"><span className="muted">Verfügbar</span><strong>{s.balance} 🥚</strong><div className="redeemRow"><input type="number" min={1} max={Math.max(1,s.balance)} value={amounts[s.id]||Math.min(6,Math.max(1,s.balance))} onChange={e=>setAmounts(a=>({...a,[s.id]:Number(e.target.value)}))}/><button className="btn" disabled={s.balance<1} onClick={()=>createCode(s)}>Abholcode</button></div></div>
+      </section>)}
+    </div>
 
-          <div className="eggRow">
-            {eggs.map((filled, i) => <span key={i} className={`egg ${filled ? '' : 'empty'}`} />)}
-          </div>
-          <strong>{data?.weekEggs ?? 0} von 6 Eiern diese Woche</strong>
-        </div>
-      </section>
-
-      <section className="grid" style={{marginTop:18}}>
-        <div className="card">
-          <div className="muted">Verfügbares Eierguthaben</div>
-          <div className="stat">{data?.availableEggs ?? 0} 🥚</div>
-        </div>
-        <div className="card">
-          <div className="muted">Wochenanspruch</div>
-          <div className="stat">6 🥚</div>
-        </div>
-        <div className="card">
-          <div className="muted">Nächster Schritt</div>
-          <button className="btn" style={{marginTop:10}} onClick={() => setInfo('Abholcodes bauen wir in V0.3 ein.')}>Eier abholen</button>
-        </div>
-      </section>
-    </main>
-  )
+    {!!codes.length&&<section style={{marginTop:30}}><div className="eyebrow">ABHOLCODES</div><h2 className="sectionTitle">Deine Codes</h2><div className="codeGrid">{codes.map(c=><article className="card codeCard" key={c.id}><div><span className={'statusBadge '+c.status}>{c.status==='open'?'gültig':c.status==='redeemed'?'eingelöst':c.status==='cancelled'?'storniert':'abgelaufen'}</span><h3>{c.egg_count} Eier</h3><div className="bigCode">{c.code}</div><p className="small muted">Gültig bis {new Date(c.expires_at).toLocaleString('de-DE')}</p>{c.status==='open'&&<button className="btn ghost" onClick={()=>cancelCode(c.id)}>Code stornieren</button>}</div><div className="qrBox"><QRCodeSVG value={c.code} size={128} /></div></article>)}</div></section>}
+  </main>
 }
