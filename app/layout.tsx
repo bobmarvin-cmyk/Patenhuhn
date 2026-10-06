@@ -18,6 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <Link href="/" className="brand"><span className="brandMark">🐔</span><span>Patenhuhn.de</span></Link>
             <nav className="nav">
               <Link href="/bestellen">Patenhuhn bestellen</Link>
+              <Link href="/urkunden">Urkunden</Link>
               <Link href="/anbieter">Für Höfe</Link>
               <Link href="/stall">Mein Stall</Link>
               <Link className="navLogin" href="/login">Anmelden</Link>

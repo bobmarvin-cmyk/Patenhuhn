@@ -44,6 +44,21 @@ export default function HomePage() {
         <div className="legacyPoster"><img src="/patenhuhn-alt.png" alt="Patenhuhn – ursprüngliches Plakat"/></div>
       </section>
 
+
+      <section className="certificatePromo">
+        <div className="main certificatePromoGrid">
+          <div className="certificatePromoCopy">
+            <div className="eyebrow">DEINE PATENSCHAFTSURKUNDE</div>
+            <h2>Vier Stile. Eine ganz persönliche Urkunde.</h2>
+            <p>Zu jeder Patenschaft gehört eine personalisierte Urkunde mit Hühnername, Foto, Name der Patin oder des Paten und Ausstellungsdatum. Du wählst zwischen Klassisch, Natur, Mittelalter und Comic.</p>
+            <div className="miniStyleRow"><span>Klassisch</span><span>Natur</span><span>Mittelalter</span><span>Comic</span></div>
+            <p className="muted">Im persönlichen Hühnerstall kannst du die fertige Urkunde später jederzeit ansehen und als PDF herunterladen.</p>
+            <Link className="btn" href="/urkunden">Urkunden ansehen</Link>
+          </div>
+          <Link href="/urkunden" className="certificatePromoImage"><img src="/urkunden-muster.png" alt="Muster der Patenhuhn.de Patenschaftsurkunden"/></Link>
+        </div>
+      </section>
+
       <section className="warmSection">
         <div className="main split">
           <div><div className="eyebrow">DEINE PATENSCHAFT</div><h2>Mehr als nur sechs Eier.</h2><p>Du bekommst eine persönliche Verbindung zu deiner Henne und unterstützt eine Haltung mit Freiland, mobilen Ställen, Hähnen und Schutz vor Fressfeinden.</p><a className="inlineLink" href="https://bob-eier.jimdoweb.com/" target="_blank" rel="noreferrer">Mehr über BoBs Eier →</a></div>
