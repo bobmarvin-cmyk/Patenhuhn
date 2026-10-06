@@ -85,8 +85,7 @@ export default function StallPage(){
     <div className="stallList">
       {items.map(s=><section className="card chickenCardV2" key={s.id}>
         <div className="chickenAvatar">🐔</div>
-        <div className="chickenMain"><div className="muted">{s.chickens?.farms?.name||'Patenhuhn-Hof'}{s.chickens?.farms?.city?` · ${s.chickens.farms.city}`:''}</div><h2>{s.chickens?.name||'Patenhuhn'}</h2><div className="muted">{s.chickens?.breed||'Rasse nicht hinterlegt'}</div>
-          <div className="eggRow">{Array.from({length:s.eggs_per_week},(_,i)=><span key={i} className={'egg '+(i<s.weekEggs?'':'empty')}/>)}</div>
+        <div className="chickenMain"><div className="muted">{s.chickens?.farms?.name||'Patenhuhn-Hof'}{s.chickens?.farms?.city?` · ${s.chickens.farms.city}`:''}</div><h2>{s.chickens?.name||'Patenhuhn'}</h2>          <div className="eggRow">{Array.from({length:s.eggs_per_week},(_,i)=><span key={i} className={'egg '+(i<s.weekEggs?'':'empty')}/>)}</div>
           <strong>{s.weekEggs} von {s.eggs_per_week} Eiern diese Woche</strong>
         </div>
         <div className="balanceBox"><span className="muted">Verfügbar</span><strong>{s.balance} 🥚</strong><div className="redeemRow"><input type="number" min={1} max={Math.max(1,s.balance)} value={amounts[s.id]||Math.min(6,Math.max(1,s.balance))} onChange={e=>setAmounts(a=>({...a,[s.id]:Number(e.target.value)}))}/><button className="btn" disabled={s.balance<1} onClick={()=>createCode(s)}>Abholcode</button></div></div>

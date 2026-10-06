@@ -1,35 +1,44 @@
-# Patenhuhn V0.5
+# Patenhuhn V0.6
 
-Next.js + Supabase + Vercel.
+Komplette GitHub-Version der Patenhuhn-Webanwendung.
 
-## Neu in V0.5
-- ausschließlich personalisierte Patenhühner
-- Spendenhuhn-/Eierspenden-Option aus der Bestellung entfernt
-- Premium-Paket klar definiert und gilt für alle Hennen einer Patenschaft
-- Bestellbestätigung: „Anfrage wird gestellt / Bestätigung per E-Mail“
-- Kontaktformular an bobs@posteo.de
-- Bestellanfragen werden zusätzlich per Mail an bobs@posteo.de gesendet, sobald Resend konfiguriert ist
-- Impressum aktualisiert
-- BoBs Eier im Footer und auf der Startseite verlinkt
+## Neu in V0.6
+- ruhiger Freiland-/Mobilstall-Look mit Hof-Hintergrund
+- Login robuster gegen falsch eingetragene Supabase-URL mit `/auth/v1` oder anderem Pfad
+- „Name auf der Urkunde“ → „Urkunde ausgestellt für“
+- abweichende E-Mail für Eierempfang entfernt
+- Urkundenstile: Klassisch, Natur, Mittelalter, Comic
+- „Eierguthaben“ in der Kundensprache weitgehend durch „digitales Nest“ ersetzt
+- „Welsumer“ aus Demo-/Stallanzeige entfernt
+- Text bei Code-Einlösung ohne „echten“
+- ausführlichere Leistungen der Patenschaft
+- Premium bleibt für alle Hennen einer Patenschaft
+- automatische Bestell-/Kontaktmail über Resend vorbereitet
 
 ## Supabase
-Nur diese neue Migration EINMAL ausführen:
-`supabase/migrations/004_branding_contact_cleanup.sql`
+Für V0.6 ist **keine neue SQL-Migration nötig**, wenn `003_full_cycle.sql` und `004_branding_contact_cleanup.sql` bereits gelaufen sind.
 
-Alte Migrationen NICHT erneut ausführen.
+Alte Migrationen niemals erneut ausführen.
 
 ## Vercel Environment Variables
-Bereits vorhanden:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-Für echten automatischen Mailversand zusätzlich:
-- `RESEND_API_KEY`
-- `MAIL_FROM`
+### Supabase
+```text
+NEXT_PUBLIC_SUPABASE_URL=https://DEIN-PROJEKT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
 
-`MAIL_FROM` muss eine bei Resend freigegebene Absenderadresse/-domain sein. Empfänger ist fest `bobs@posteo.de`.
+Bei `NEXT_PUBLIC_SUPABASE_URL` am besten wirklich nur die Basis-URL verwenden, also **ohne** `/auth/v1`, `/rest/v1` oder weitere Pfade. V0.6 normalisiert die URL zusätzlich automatisch.
 
-Ohne Resend-Konfiguration werden Bestellungen und Kontaktanfragen trotzdem sicher in Supabase gespeichert; nur die zusätzliche E-Mail wird dann nicht versendet.
+### Resend / automatische E-Mails
+```text
+RESEND_API_KEY=re_...
+MAIL_FROM=Patenhuhn <anfragen@deine-verifizierte-domain.de>
+```
 
-## GitHub
-Den INHALT dieses Ordners in das bestehende Repository hochladen, sodass `app/`, `lib/`, `public/`, `supabase/` und `package.json` direkt im Repo-Root liegen.
+Bestell- und Kontaktmails werden an `bobs@posteo.de` geschickt. Die im Formular eingegebene Kundenmail wird als Reply-To gesetzt.
+
+Für Resend muss der Absender bzw. die Domain im Resend-Konto verifiziert werden. Ohne Resend-Konfiguration werden Bestellungen/Kontaktanfragen weiterhin in Supabase gespeichert; nur der zusätzliche Mailversand bleibt aus.
+
+## GitHub / Vercel
+Den **Inhalt** dieses Ordners in das bestehende Repository hochladen, sodass `app/`, `public/`, `package.json` usw. direkt im Repository-Root liegen. Vercel sollte danach automatisch neu deployen.
