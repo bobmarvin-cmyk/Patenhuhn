@@ -1,29 +1,22 @@
-import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { NextResponse } from "next/server";
 
-const destination = 'bobs@posteo.de'
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const apiKey = process.env.RESEND_API_KEY
-    const from = process.env.MAIL_FROM
-    if (!apiKey || !from) {
-      return NextResponse.json({ sent:false, configured:false }, { status:200 })
-    }
-    const resend = new Resend(apiKey)
-    const kind = body.kind === 'order' ? 'Neue Patenhuhn-Anfrage' : 'Neue Kontaktanfrage'
-    const lines = Object.entries(body.data || {}).map(([k,v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
-    const { error } = await resend.emails.send({
-      from,
-      to: destination,
-      replyTo: body.replyTo || undefined,
-      subject: kind,
-      text: `${kind}\n\n${lines.join('\n')}`
-    })
-    if (error) return NextResponse.json({sent:false,error:String(error.message || error)}, {status:500})
-    return NextResponse.json({sent:true})
-  } catch (e:any) {
-    return NextResponse.json({sent:false,error:e?.message || 'Mailfehler'}, {status:500})
-  }
+/**
+ * Legacy compatibility endpoint.
+ *
+ * Earlier Patenhuhn versions used Resend here. The current application stores
+ * requests in Supabase and opens the visitor's mail client via mailto: instead,
+ * so no mail provider is required anymore.
+ *
+ * Keeping this dependency-free route intentionally overwrites old GitHub copies
+ * of app/api/send-mail/route.ts when upgrading from V0.5/V0.6.
+ */
+export async function POST() {
+  return NextResponse.json(
+    {
+      ok: false,
+      deprecated: true,
+      message: "Der direkte Mailversand ist deaktiviert. Die Anfrage wird in Supabase gespeichert und per mailto geöffnet.",
+    },
+    { status: 410 },
+  );
 }

@@ -1,6 +1,6 @@
-# Patenhuhn.de V0.7
+# Patenhuhn.de V0.7.1
 
-V0.7 erweitert die bestehende V0.6 um die vollständige Urkundenfunktion und das Patenhuhn.de-Branding.
+V0.7.1 erweitert die bestehende V0.6 um die vollständige Urkundenfunktion und das Patenhuhn.de-Branding.
 
 ## Neu
 - Patenhuhn.de als Markenname in Header/Footer
@@ -48,3 +48,8 @@ Benötigt weiterhin nur:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 `RESEND_API_KEY` und `MAIL_FROM` sind nicht mehr nötig.
+
+
+## V0.7.1 Build-Fix
+
+`app/api/send-mail/route.ts` ist jetzt eine dependency-freie Legacy-Route. Sie überschreibt die alte Resend-Version im GitHub-Repository, damit Vercel keine `resend`-Abhängigkeit mehr benötigt.
