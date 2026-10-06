@@ -1,32 +1,31 @@
-# Patenhuhn MVP V0.1
+# Patenhuhn V0.2
 
-Erster technischer Kern für den Neubau der Patenhuhn-Plattform.
+Erste echte Next.js-Web-App für Patenhuhn.
 
 ## Enthalten
-- Höfe
-- Hühner
-- Kundenprofile
-- Patenschaften
-- 6 Eier pro Woche als konfigurierbarer Standard
-- Eier-Kontobuch statt unsicherem Einzelzähler
-- einmalige Abholcodes
-- Reservierung und Storno
-- Einlösen durch Hof/Admin
-- grundlegende RLS-Regeln
+- Startseite
+- Supabase Login
+- Digitaler Hühnerstall
+- Demo-Huhn „Lotta“ wenn noch kein Benutzer eingeloggt ist
+- Versuch, aktive Patenschaft + Eiertransaktionen aus Supabase zu laden
+- 6-Eier-pro-Woche-Darstellung
 
-## Empfohlener Stack
-- Next.js App Router
-- Supabase Postgres + Auth
-- Vercel
+## Environment Variables
+In Vercel anlegen:
 
-Für aktuelle Next.js/Supabase-Projekte sollte Auth serverseitig mit `@supabase/ssr` und Cookie-Sessions eingerichtet werden.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-## Start
-1. Neues Supabase-Projekt anlegen.
-2. Datei `supabase/migrations/001_core.sql` einmal im SQL Editor ausführen.
-3. Danach keine Migration ein zweites Mal ausführen.
-4. Next.js-App separat anlegen und Supabase verbinden.
-5. `.env.local` niemals veröffentlichen oder in ZIP/Git einchecken.
+Die Variablen sind bei Vercel als `config` sichtbar, nicht als `secret`.
 
-## Nächster Entwicklungsschritt
-V0.2: echte Next.js-Oberfläche mit Login und dem ersten digitalen Hühnerstall.
+## Wichtig
+`.env.local` niemals in GitHub hochladen.
+
+## GitHub Upload
+Den **Inhalt dieses Ordners** in das bestehende Repository `Patenhuhn` hochladen. Vorhandene README darf ersetzt werden.
+
+## Vercel
+Nach dem Commit sollte Vercel automatisch neu deployen. Falls nicht: Deployments -> Redeploy.
+
+## Nächste Version
+V0.3: Registrierung, echte Patenschaftsauswahl, Abholcode/QR-Code und Hof-Einlösung.
