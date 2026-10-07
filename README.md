@@ -1,16 +1,15 @@
-# Patenhuhn.de V0.7.3
+# Patenhuhn.de V0.7.4
 
-Erweiterung von V0.7.2:
-- echtes Urkundenstudio im Adminbereich
-- Patenschaft auswählen und Urkundendaten live bearbeiten
-- Live-Vorschau der vier Urkundenstile
-- Hühnerfoto direkt im Urkundenstudio hochladen
-- PDF der Admin-Vorschau herunterladen
-- gespeicherte digitale Unterschrift erscheint in der Vorschau und im Kundenprofil
-- Registrierung unterscheidet jetzt klar zwischen direkter Freischaltung und erwarteter E-Mail-Bestätigung
-- Bestätigungslink führt nach `/login?confirmed=1`
+Diese Version verbindet die Urkundenauswahl und die Urkundenerstellung durchgängig:
 
-## Supabase
-Keine neue Migration nötig, wenn 005 bereits ausgeführt wurde.
+1. Kundin/Kunde wählt bei `/bestellen` eine der vier echten Vorlagen: Klassisch, Natur, Mittelalter oder Comic.
+2. Die Auswahl wird mit der Bestellung in `contact_data.certificate_style` gespeichert.
+3. Beim Anlegen der Patenschaft übernimmt die bestehende Datenbankfunktion aus Migration 005 den gewählten Stil nach `sponsorships.certificate_style`.
+4. Im Admin-Urkundenstudio ist genau diese Vorlage vorausgewählt. Dort können Hühnername, Empfänger, Ausstellungsdatum, Hühnerfoto und digitale Signatur ergänzt werden.
+5. Die Live-Vorschau und der PDF-Download verwenden dieselbe `Certificate`-Komponente wie die Auswahl im Bestellformular.
+6. Dieselbe gespeicherte Urkunde erscheint im persönlichen Hühnerpatenprofil.
 
-Für Bestätigungsmails muss Supabase Auth entsprechend konfiguriert sein. Bei Nutzung des Supabase-Standard-Mailservers bestehen Einschränkungen; für echte Kundennutzung sollte ein eigener SMTP-Dienst eingerichtet oder die E-Mail-Bestätigung bewusst deaktiviert werden.
+## Update
+Keine neue Supabase-Migration nötig, sofern Migration 005 bereits ausgeführt wurde.
+
+Den Inhalt dieses Ordners direkt in das bestehende GitHub-Repository hochladen.
